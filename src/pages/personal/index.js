@@ -2,62 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout';
 import axios from 'axios';
+import './style.scss';
 
 function Personal() {
+    const baseUrl = 'https://back2-1.onrender.com';
     const [title, setTitle] = useState('');
     const [mediaFiles, setMediaFiles] = useState([]);
     const [posts, setPosts] = useState([]);
-    const [message, setMessage] = useState('');
 
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const fetchData = async () => {
-            try{
-                if(localStorage.getItem('token')){
-                    const res = await axios.get('/users/verifyToken',{
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-
-                    if(res.data.data === 'Token valid'){
-                        return null;
-                    }else if(localStorage.getItem('refreshToken')){
-                        const response = await axios.post('/users/refreshToken', { userId: localStorage.getItem('userId')}, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
-                            }
-                        });
-                        if(response.data.token)
-                            localStorage.setItem('token', response.data.token);
-                        else navigate('/');
-                    }else{
-                        navigate('/');
-                    }
-                }else{
-                    navigate('/');
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchData();
-        fetchPosts();
-    }, []);
-
-    const fetchPosts = async () => {
-        try {
-            const response = await axios.get('/users/posts/personal', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            setPosts(response.data.data);
-        } catch (error) {
-            console.error(error);
-        }
-    };
 
     const handleCreatePost = async () => {
         try {
@@ -68,16 +21,96 @@ function Personal() {
                 formData.append('files', file);
             });
 
-            const response = await axios.post('/users/posts/add', formData, {
+            const response = await axios.post(baseUrl+'/users/posts/add', formData, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
             setPosts(prevPosts => [...prevPosts, response.data.data]);
-            setMessage(`Post created successfully`);
         } catch (error) {
-            setMessage('Error creating post');
+            console.log(error);
+        }
+    };
+    
+    useEffect(() => {
+        const fetchData = async () => {
+            try{
+                if(!localStorage.getItem('token') && !localStorage.getItem('refreshToken')) navigate('/');
+
+                let checkAT = false, checkRT = false;
+                let typeToken = 'AT';
+                if(localStorage.getItem('token')){
+                    const res = await axios.post(baseUrl+'/users/verifyToken',{typeToken},{
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if(res.data.data === 'Token valid') checkAT=true;
+                }
+                typeToken = 'RT';
+                if(localStorage.getItem('refreshToken')){
+                    const res = await axios.post(baseUrl+'/users/verifyToken',{typeToken},{
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                        }
+                    });
+                    if(res.data.data === 'RFToken valid') checkRT=true;
+                }
+
+                if(!checkAT && checkRT){
+                    const response = await axios.post(baseUrl+'/users/addAccessToken', { userId: localStorage.getItem('userId')});
+                    if(response.data.token){
+                        localStorage.setItem('token', response.data.token);
+                    }
+                }else if(checkAT && !checkRT){
+                    if(localStorage.getItem('refreshToken')){
+                        await axios.post(baseUrl+'/users/refreshToken/delete', null, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                            }
+                        });
+                    }
+                    const response = await axios.post(baseUrl+'/users/addRefreshToken', { userId: localStorage.getItem('userId')});
+                    if(response.data.refreshToken){
+                        localStorage.setItem('refreshToken', response.data.token);
+                    }
+                }else if(checkAT && checkRT){
+
+                }else{
+                    if(localStorage.getItem('token'))
+                        localStorage.removeItem('token');
+                    if(localStorage.getItem('refreshToken')){
+                        await axios.post(baseUrl+'/users/refreshToken/delete', null, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                            }
+                        });
+                        localStorage.removeItem('refreshToken');
+                    }
+                    if(localStorage.getItem('userId'))
+                        localStorage.removeItem('userId');
+                    navigate('/');
+                }
+            } catch (error) {
+                console.error(error);
+                navigate('/');
+            }
+        };
+        fetchData();
+        fetchPosts();
+    }, [handleCreatePost]);
+
+    const fetchPosts = async () => {
+        try {
+            const response = await axios.get(baseUrl+'/users/posts/personal', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
+            setPosts(response.data.data);
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -89,29 +122,56 @@ function Personal() {
         navigate(`/editPost/${post._id}`);
     };
 
+    const isVideo = (url) => {
+        return url.endsWith('.mp4');
+    };
+    
     return (
-        <div>
-            <div><Layout/></div>
-            <h2>Create a New Post</h2>
-            <input type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-            <input type="file" multiple onChange={handleFileChange} />
-            <button onClick={handleCreatePost}>Create Post</button>
-            <p>{message}</p>
-            <div>
-                <h2>Cac bai post:</h2>
+        <table className="home-container">
+        <tr className='header'>
+            <th className='header-th'>
+                <Layout/> 
+            </th>
+        </tr>
+        <tr className="create-post-section">
+            <th>
+                <input className="create-post-text-input" type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
+                <input className="create-post-input" type="file" multiple onChange={handleFileChange} />
+                <button className="create-post-button" onClick={handleCreatePost}>Create Post</button>
+            </th>
+        </tr>
+        <tr className="post-list">
                 {posts.map(post => (
-                    <div key={post._id}>
-                        {localStorage.getItem('userId') === post.userId ? (
-                            <button onClick={() => handleEditPost(post)}>Chỉnh Sửa</button>
-                        ) : ''}
-                        <h3>{post.title}</h3>
-                        {post.album.map(e => (
-                            <img src={e}/>
-                        ))}
-                    </div>
+                    <table key={post._id} className="post-item">
+                            <tr>
+                                <th className='avatar-cot'>
+                                    <img className="avatar" src={post.avatar} /> 
+                                    <p className="user-name">{post.userName}</p> 
+                                    {localStorage.getItem('userId') === post.userId ? (
+                                    <button className="edit-post-button" onClick={() => handleEditPost(post)}>⋮</button>
+                                    ) : null}
+                                </th>
+                            </tr>
+                            <tr> <th> <p className="post-title">{post.title}</p> </th> </tr>
+                            <tr className="post-media">
+                                <th>
+                                {post.album.map((url, index) => (
+                                    <div key={index} className="media-item">
+                                        {isVideo(url) ? (
+                                            <video className="video-player" controls>
+                                                <source src={url} type="video/mp4" />
+                                            </video>
+                                        ) : (
+                                            <img className="image" src={url} alt={`Image ${index}`} />
+                                        )}
+                                    </div>
+                                ))}
+                                </th>
+                            </tr>
+                    </table>
                 ))}
-            </div>
-        </div>
+        </tr>
+        </table>
     );
 }
 

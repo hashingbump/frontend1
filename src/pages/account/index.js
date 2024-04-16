@@ -2,105 +2,161 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../../components/layout';
 import axios from 'axios';
+import './style.scss';
 
 function Account() {
+    const baseUrl = 'https://back2-1.onrender.com';
     const [userName, setUserName] = useState('');
     const [file, setFile] = useState(null);
-    const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
 
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try{
-                if(localStorage.getItem('token')){
-                    const res = await axios.get('/users/verifyToken',{
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    if(res.data.data === 'Token valid'){
-                        return null;
-                    }else if(localStorage.getItem('refreshToken')){
-                        const response = await axios.post('/users/refreshToken', { userId: localStorage.getItem('userId')}, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
-                            }
-                        });
-                        if(response.data.token)
-                            localStorage.setItem('token', response.data.token);
-                        else navigate('/');
-                    }else{
-                        navigate('/');
-                    }
-                }else{
-                    navigate('/');
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchData();
-    }, []);
-
-    const handleUpdate = async () => {
-        try {
-            const formData = new FormData();
-            formData.append('userName', userName);
-            formData.append('file', file);
-            formData.append('email', email);
-            formData.append('password', password);
-
-            const response = await axios.post('/users/update', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-
-            setMessage('Update successfully');
-        } catch (error) {
-            setMessage('Error Update');
-        }
-    };
-
     const handleDelete = async () => {
         try {
-            const response = await axios.post('/users/delete', null, {
+            await axios.post(baseUrl+'/users/delete', null, {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
             });
-            if(localStorage.getItem('token')){
+            if(localStorage.getItem('token'))
                 localStorage.removeItem('token');
+            if(localStorage.getItem('refreshToken')){
+                await axios.post(baseUrl+'/users/refreshToken/delete', null, {
+                    headers: {
+                        'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                    }
+                });
+                localStorage.removeItem('refreshToken');
             }
-            navigate('/');
+            if(localStorage.getItem('userId'))
+                localStorage.removeItem('userId');
+            
             setMessage('Delete successfully');
+            navigate('/');
         } catch (error) {
             setMessage(error);
         }
     };
 
+    const handleUpdate = async () => {
+        try {
+            if(userName.length<8)
+                setMessage('UserName must be at least 8 letters');
+            else{
+                const formData = new FormData();
+                formData.append('userName', userName);
+                formData.append('file', file);
+                formData.append('password', password);
+
+                const res = await axios.post(baseUrl+'/users/update', formData, {
+                    headers: {
+                        'Content-Type': 'multipart/form-data',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    }
+                });
+                if(res.data.data === 'Done')
+                    setMessage('Update successfully');
+                else setMessage('Wrong Password ');
+            }
+        } catch (error) {
+            setMessage('Error Update');
+        }
+    };
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try{
+                if(!localStorage.getItem('token') && !localStorage.getItem('refreshToken')) navigate('/');
+
+                let checkAT = false, checkRT = false;
+                let typeToken = 'AT';
+                if(localStorage.getItem('token')){
+                    const res = await axios.post(baseUrl+'/users/verifyToken',{typeToken},{
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if(res.data.data === 'Token valid') checkAT=true;
+                }
+                typeToken = 'RT';
+                if(localStorage.getItem('refreshToken')){
+                    const res = await axios.post(baseUrl+'/users/verifyToken',{typeToken},{
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                        }
+                    });
+                    if(res.data.data === 'RFToken valid') checkRT=true;
+                }
+
+                if(!checkAT && checkRT){
+                    const response = await axios.post(baseUrl+'/users/addAccessToken', { userId: localStorage.getItem('userId')});
+                    if(response.data.token){
+                        localStorage.setItem('token', response.data.token);
+                    }
+                }else if(checkAT && !checkRT){
+                    if(localStorage.getItem('refreshToken')){
+                        await axios.post(baseUrl+'/users/refreshToken/delete', null, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                            }
+                        });
+                    }
+                    const response = await axios.post(baseUrl+'/users/addRefreshToken', { userId: localStorage.getItem('userId')});
+                    if(response.data.refreshToken){
+                        localStorage.setItem('refreshToken', response.data.token);
+                    }
+                }else if(checkAT && checkRT){
+
+                }else{
+                    if(localStorage.getItem('token'))
+                        localStorage.removeItem('token');
+                    if(localStorage.getItem('refreshToken')){
+                        await axios.post(baseUrl+'/users/refreshToken/delete', null, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                            }
+                        });
+                        localStorage.removeItem('refreshToken');
+                    }
+                    if(localStorage.getItem('userId'))
+                        localStorage.removeItem('userId');
+                    navigate('/');
+                }
+            } catch (error) {
+                console.error(error);
+                navigate('/');
+            }
+        };
+        fetchData();
+    }, [handleDelete, handleUpdate]);
+
     return (
-        <div>
-            <div><Layout/></div>
-            <div>
-                <h2>Cap nhap Tai Khoan</h2>
-                <input type="file" onChange={(e) => setFile(e.target.files[0])} />
-                <br/>
-                <input type="text" placeholder="UserName" value={userName} onChange={(e) => setUserName(e.target.value)} />
-                <br/>
-                <input type="text" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
-                <br/>
-                <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                <br/>
-                <button onClick={handleUpdate}>Cap Nhap</button>
-                <button onClick={handleDelete}>Xoa tai khoan</button>
-            </div>
-            <p>{message}</p>
-        </div>
+        <table className="home-container">
+        <tr className='header'>
+            <th className='header-th'>
+                <Layout/> 
+            </th>
+        </tr>
+        <tr>
+            <th className="container">
+                <h1 className='ten'>Update Account</h1>
+                <div className="login-form">
+                    <div className='avatar-file'>
+                        <p>Avatar: </p>
+                        <input className="file-input" type="file" onChange={(e) => setFile(e.target.files[0])} />
+                    </div>
+                    <input className="userName-input" type="text" placeholder="UserName" value={userName} onChange={(e) => setUserName(e.target.value)} />
+                    <input className="password-input" type="password" placeholder="Type password to update" value={password} onChange={(e) => setPassword(e.target.value)} />
+                    <button className="login-btn" onClick={handleUpdate}>Update</button>
+                    <br/> <br/>
+                    <button className="signup-btn" onClick={handleDelete}>Delete Account</button>
+                </div>
+                <p class="message">{message}</p>
+            </th>
+        </tr>
+        </table>
     );
 }
 

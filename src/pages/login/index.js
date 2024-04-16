@@ -4,44 +4,15 @@ import axios from 'axios';
 import './style.scss';
 
 function Login() {
+    const baseUrl = 'https://back2-1.onrender.com';
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try{
-                if(localStorage.getItem('token')){
-                    const res = await axios.get('/users/verifyToken',{
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('token')}`
-                        }
-                    });
-                    if(res.data.data === 'Token valid'){
-                        navigate('/home');
-                    }else if(localStorage.getItem('refreshToken')){
-                        const response = await axios.post('/users/refreshToken', { userId: localStorage.getItem('userId')}, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
-                            }
-                        });
-                        if(response.data.token){
-                            localStorage.setItem('token', response.data.token);
-                            navigate('/home');
-                        }
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-            }
-        };
-        fetchData();
-    }, []);
-
     const getUserId = async () => {
         try {
-            const response = await axios.get('/users/id', {
+            const response = await axios.get(baseUrl+'/users/id', {
                 headers: {
                     'Authorization': `Bearer ${localStorage.getItem('token')}`
                 }
@@ -54,7 +25,7 @@ function Login() {
 
     const handleLogin = async () => {
         try {
-            const response = await axios.post('/users/login', { email, password });
+            const response = await axios.post(baseUrl+'/users/login', { email, password });
             localStorage.setItem('token', response.data.token);
             localStorage.setItem('refreshToken', response.data.refreshToken);
             setMessage(`Logged in successfully`);
@@ -76,6 +47,74 @@ function Login() {
             localStorage.removeItem('userId');
         handleLogin();
     }
+
+    useEffect(() => {
+        const fetchData = async () => {
+            try{
+                if(!localStorage.getItem('token') && !localStorage.getItem('refreshToken')) navigate('/');
+
+                let checkAT = false, checkRT = false;
+                let typeToken = 'AT';
+
+                if(localStorage.getItem('token')){
+                    const res = await axios.post(baseUrl+'/users/verifyToken',{typeToken},{
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('token')}`
+                        }
+                    });
+                    if(res.data.data === 'Token valid') checkAT=true;
+                }
+                typeToken = 'RT';
+                if(localStorage.getItem('refreshToken')){
+                    const res = await axios.post(baseUrl+'/users/verifyToken',{typeToken},{
+                        headers: {
+                            'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                        }
+                    });
+                    if(res.data.data === 'RFToken valid') checkRT=true;
+                }
+
+                if(!checkAT && checkRT){
+                    const response = await axios.post(baseUrl+'/users/addAccessToken', { userId: localStorage.getItem('userId')});
+                    if(response.data.token){
+                        localStorage.setItem('token', response.data.token);
+                        navigate('/home');
+                    }
+                }else if(checkAT && !checkRT){
+                    if(localStorage.getItem('refreshToken')){
+                        await axios.post(baseUrl+'/users/refreshToken/delete', null, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                            }
+                        });
+                    }
+                    const response = await axios.post(baseUrl+'/users/addRefreshToken', { userId: localStorage.getItem('userId')});
+                    if(response.data.refreshToken){
+                        localStorage.setItem('refreshToken', response.data.token);
+                        navigate('/home');
+                    }
+                }else if(checkAT && checkRT){
+                    navigate('/home');
+                }else{
+                    if(localStorage.getItem('token'))
+                        localStorage.removeItem('token');
+                    if(localStorage.getItem('refreshToken')){
+                        await axios.post(baseUrl+'/users/refreshToken/delete', null, {
+                            headers: {
+                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
+                            }
+                        });
+                        localStorage.removeItem('refreshToken');
+                    }
+                    if(localStorage.getItem('userId'))
+                        localStorage.removeItem('userId');
+                }
+            } catch (error) {
+                console.error(error);
+            }
+        };
+        fetchData();
+    }, [handleClick]);
 
     return (
         <body className='login-body'>

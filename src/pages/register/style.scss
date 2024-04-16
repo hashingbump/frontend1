@@ -3,7 +3,7 @@ body{
 }
 
 .container {
-	display: flex;
+    display: flex;
     flex-direction: column;
 	position: absolute;
     top: 50%;
@@ -19,8 +19,8 @@ body{
 	justify-content: center;
   }
 
-/* Thiết kế input */
-.email-input, .password-input {
+  /* Thiết kế input */
+.email-input, .password-input, .userName-input {
 	width: 95%;
 	padding: 10px;
 	margin-bottom: 15px;

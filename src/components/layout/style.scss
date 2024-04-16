@@ -1,48 +1,48 @@
 .navigation-buttons {
     display: table;
     width: 100%;
-
     tr {
         th {
             padding: 0 10px;
         }
     }
+    border: 1px solid #ccc; /* Tùy chỉnh border cho container */
+	border-radius: 5px; /* Tùy chỉnh bo góc cho container */
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Hiệu ứng bóng đổ */
+    background-color: white;
 }
 
 .btn {
-    padding: 10px 20px;
+    padding: 10px 10px;
     border: none;
     cursor: pointer;
     font-size: 16px;
-    border-radius: 5px;
+    border-radius: 10px;
+    color:black;
     transition: background-color 0.3s, color 0.3s;
+    margin-bottom: 3px;
 }
 
 .btn:hover {
-    opacity: 0.8;
+    background-color: #8D949E;
 }
 
 .btn-home-layout {
-    background-color: #007bff;
-    color: white;
+    background-color: #DADDE1;
 }
 
 .btn-account-layout {
-    background-color: #6c757d;
-    color: white;
+    background-color: #DADDE1;
 }
 
 .btn-personal-layout {
-    background-color: #28a745;
-    color: white;
+    background-color: #DADDE1;
 }
 
 .btn-signout {
-    background-color: #dc3545;
-    color: white;
+    background-color: #DADDE1;
 }
 
 .btn-signin {
-    background-color: #007bff;
-    color: white;
+    background-color: #DADDE1;
 }

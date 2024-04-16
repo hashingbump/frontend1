@@ -10,7 +10,7 @@ function Layout() {
             if(localStorage.getItem('token'))
                 localStorage.removeItem('token');
             if(localStorage.getItem('refreshToken')){
-                const response = await axios.post('/users/refreshToken/delete', null, {
+                await axios.post('/users/refreshToken/delete', null, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
                     }
@@ -28,14 +28,14 @@ function Layout() {
     return (
         <table class="navigation-buttons">
             <tr>
-                <th> <button class="btn btn-home-layout" onClick={() => { navigate('/home'); }}>Trang chủ</button> </th>
-                <th> <button class="btn btn-account-layout" onClick={() => { navigate('/account'); }}>Tài khoản</button> </th>
-                <th> <button class="btn btn-personal-layout" onClick={() => { navigate('/personal'); }}>Trang cá nhân</button> </th>
+                <th> <button class="btn btn-home-layout" onClick={() => { navigate('/home'); }}>Home</button> </th>
+                <th> <button class="btn btn-personal-layout" onClick={() => { navigate('/personal'); }}>Personal</button> </th>
+                <th> <button class="btn btn-account-layout" onClick={() => { navigate('/account'); }}>Account</button> </th>
                 <th>
                     {localStorage.getItem('token') ? (
-                    <button class="btn btn-signout" onClick={handleLogout}>Đăng xuất</button>
+                    <button class="btn btn-signout" onClick={handleLogout}>Logout</button>
                     ) : (
-                        <button class="btn btn-signin" onClick={() => {navigate('/'); }}>Đăng nhập</button>
+                        <button class="btn btn-signin" onClick={() => {navigate('/'); }}>Login</button>
                     )} 
                 </th>
             </tr>
