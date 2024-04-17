@@ -4,13 +4,14 @@ import axios from 'axios';
 import './style.scss'
 
 function Layout() {
+    const baseUrl = 'https://back2-1.onrender.com';
     const navigate = useNavigate();
     const handleLogout = async () => {
         try {
             if(localStorage.getItem('token'))
                 localStorage.removeItem('token');
             if(localStorage.getItem('refreshToken')){
-                await axios.post('/users/refreshToken/delete', null, {
+                await axios.post(baseUrl+'/users/refreshToken/delete', null, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
                     }
