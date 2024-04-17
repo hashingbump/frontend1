@@ -119,7 +119,11 @@ function Home() {
     };
 
     const isVideo = (url) => {
-        return url.endsWith('.mp4');
+        const a = ['.jpg','.jpeg','.png','.gif','.raw'];
+        for(let i=0; i<a.length; i++)
+            if(url.endsWith(a[i])) return false;
+    
+        return true;
     };
 
     return (
@@ -155,7 +159,7 @@ function Home() {
                                     <div key={index} className="media-item">
                                         {isVideo(url) ? (
                                             <video className="video-player" controls>
-                                                <source src={url} type="video/mp4" />
+                                                <source src={url} />
                                             </video>
                                         ) : (
                                             <img className="image" src={url} alt={`Image ${index}`} />
