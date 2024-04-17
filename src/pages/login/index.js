@@ -123,7 +123,7 @@ function Login() {
                 <div className="login-form">
                     <input className="email-input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                     <input className="password-input" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                    <button className="login-btn" onClick={handleClick}>Login</button>
+                    <button className="login-btn" onClick={handleLogin}>Login</button>
                     <br/> <br/>
                     <button className="signup-btn" size="small" onClick={() => { navigate('/register'); }}> Register </button>
                 </div>
