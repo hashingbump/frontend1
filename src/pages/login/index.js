@@ -39,12 +39,6 @@ function Login() {
     };
 
     function handleClick(){
-        if(localStorage.getItem('token'))
-            localStorage.removeItem('token');
-        if(localStorage.getItem('refreshToken'))
-            localStorage.removeItem('refreshToken');
-        if(localStorage.getItem('userId'))
-            localStorage.removeItem('userId');
         handleLogin();
     }
 
@@ -114,7 +108,7 @@ function Login() {
             }
         };
         fetchData();
-    }, [handleClick]);
+    }, []);
 
     return (
         <body className='login-body'>
