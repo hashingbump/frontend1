@@ -108,7 +108,7 @@ function EditPost() {
             }
         };
         fetchData();
-    }, [handleDelete, handleUpdate]);
+    }, [message]);
 
     const handleFileChange = (e) => {
         setMediaFiles([...e.target.files]);

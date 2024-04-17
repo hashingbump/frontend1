@@ -99,7 +99,7 @@ function Home() {
         };
         fetchData();
         fetchPosts();
-    }, [handleCreatePost]);
+    }, [posts]);
 
     const fetchPosts = async () => {
         try {

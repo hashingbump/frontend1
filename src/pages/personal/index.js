@@ -99,7 +99,7 @@ function Personal() {
         };
         fetchData();
         fetchPosts();
-    }, [handleCreatePost]);
+    }, [posts]);
 
     const fetchPosts = async () => {
         try {

@@ -130,7 +130,7 @@ function Account() {
             }
         };
         fetchData();
-    }, [handleDelete, handleUpdate]);
+    }, [message]);
 
     return (
         <table className="home-container">
