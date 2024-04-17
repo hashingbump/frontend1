@@ -37,8 +37,14 @@ function Login() {
             setMessage('Invalid credentials');
         }
     };
-
+    
     function handleClick(){
+        if(localStorage.getItem('token'))
+            localStorage.removeItem('token');
+        if(localStorage.getItem('refreshToken'))
+            localStorage.removeItem('refreshToken');
+        if(localStorage.getItem('userId'))
+            localStorage.removeItem('userId');
         handleLogin();
     }
 
@@ -117,7 +123,7 @@ function Login() {
                 <div className="login-form">
                     <input className="email-input" type="email" placeholder="Email" value={email} onChange={(e) => setEmail(e.target.value)} />
                     <input className="password-input" type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} />
-                    <button className="login-btn" onClick={handleLogin}>Login</button>
+                    <button className="login-btn" onClick={handleClick}>Login</button>
                     <br/> <br/>
                     <button className="signup-btn" size="small" onClick={() => { navigate('/register'); }}> Register </button>
                 </div>
