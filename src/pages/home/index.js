@@ -5,125 +5,61 @@ import axios from 'axios';
 import './style.scss';
 
 function Home() {
-    const baseUrl = 'https://back2-1.onrender.com';
-    const [title, setTitle] = useState('');
-    const [mediaFiles, setMediaFiles] = useState([]);
-    const [posts, setPosts] = useState([]);
-
+    const baseUrl = '';
     const navigate = useNavigate();
+
+    const [selectedMovies, setSelectedMovies] = useState([]);
+    const [posts, setPosts] = useState([]);
+    const [currentPage, setCurrentPage] = useState(1);
+    const postsPerPage = 4;
+  
+    const indexOfLastPost = currentPage * postsPerPage;
+    const indexOfFirstPost = indexOfLastPost - postsPerPage;
+  
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
     
-    const handleCreatePost = async () => {
-        try {
-            const formData = new FormData();
-            formData.append('title', title);
-
-            mediaFiles.forEach(file => {
-                formData.append('files', file);
-            });
-
-            const response = await axios.post(baseUrl+'/users/posts/add', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            });
-            setPosts(prevPosts => [...prevPosts, response.data.data]);
-        } catch (error) {
-            console.log(error);
-        }
-    };
-
     useEffect(() => {
-        const fetchData = async () => {
-            try{
-                if(!localStorage.getItem('token') && !localStorage.getItem('refreshToken')) navigate('/');
-
-                let checkAT = false, checkRT = false;
-                let typeToken = 'AT';
-                if(localStorage.getItem('token')){
-                    const res = await axios.post(baseUrl+'/users/verifyToken',{typeToken},{
+        const checkToken = async () => {
+            try {
+                if(localStorage.getItem('token')) {
+                    const response = await axios.get(baseUrl+'/verifyToken', {
                         headers: {
                             'Authorization': `Bearer ${localStorage.getItem('token')}`
                         }
                     });
-                    if(res.data.data === 'Token valid') checkAT=true;
-                }
-                typeToken = 'RT';
-                if(localStorage.getItem('refreshToken')){
-                    const res = await axios.post(baseUrl+'/users/verifyToken',{typeToken},{
-                        headers: {
-                            'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
-                        }
-                    });
-                    if(res.data.data === 'RFToken valid') checkRT=true;
-                }
-
-                if(!checkAT && checkRT){
-                    const response = await axios.post(baseUrl+'/users/addAccessToken', { userId: localStorage.getItem('userId')});
-                    if(response.data.token){
-                        localStorage.setItem('token', response.data.token);
-                    }
-                }else if(checkAT && !checkRT){
-                    if(localStorage.getItem('refreshToken')){
-                        await axios.post(baseUrl+'/users/refreshToken/delete', null, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
-                            }
-                        });
-                    }
-                    const response = await axios.post(baseUrl+'/users/addRefreshToken', { userId: localStorage.getItem('userId')});
-                    if(response.data.refreshToken){
-                        localStorage.setItem('refreshToken', response.data.token);
-                    }
-                }else if(checkAT && checkRT){
-
-                }else{
-                    if(localStorage.getItem('token'))
+                    if(response.data.data !== 'Token valid') {
                         localStorage.removeItem('token');
-                    if(localStorage.getItem('refreshToken')){
-                        await axios.post(baseUrl+'/users/refreshToken/delete', null, {
-                            headers: {
-                                'Authorization': `Bearer ${localStorage.getItem('refreshToken')}`
-                            }
-                        });
-                        localStorage.removeItem('refreshToken');
+                        navigate('/');
                     }
-                    if(localStorage.getItem('userId'))
-                        localStorage.removeItem('userId');
+                } else {
                     navigate('/');
                 }
             } catch (error) {
                 console.error(error);
-                navigate('/');
             }
         };
-        fetchData();
-        fetchPosts();
-    }, [posts]);
 
+        checkToken();
+        fetchPosts();
+    }, [navigate]);
+    
     const fetchPosts = async () => {
         try {
-            const response = await axios.get(baseUrl+'/users/posts');
+            const response = await axios.get(baseUrl+'/users/movies/all',{
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            });
             setPosts(response.data.data);
         } catch (error) {
             console.error(error);
         }
     };
 
-    const handleFileChange = (e) => {
-        setMediaFiles([...e.target.files]);
-    };
-
-    const handleEditPost = (post) => {
-        navigate(`/editPost/${post._id}`);
-    };
-
-    const isVideo = (url) => {
-        const a = ['.jpg','.jpeg','.png','.gif','.raw'];
-        for(let i=0; i<a.length; i++)
-            if(url.endsWith(a[i])) return false;
-    
-        return true;
+    const handleImageClick = (index) => {
+        const newSelectedMovies = [...selectedMovies];
+        newSelectedMovies[index] = true;
+        setSelectedMovies(newSelectedMovies);
     };
 
     return (
@@ -133,43 +69,59 @@ function Home() {
                 <Layout/> 
             </th>
         </tr>
-        <tr className="create-post-section">
-            <th>
-                <input className="create-post-text-input" type="text" placeholder="Title" value={title} onChange={(e) => setTitle(e.target.value)} />
-                <input className="create-post-input" type="file" multiple onChange={handleFileChange} />
-                <button className="create-post-button" onClick={handleCreatePost}>Create Post</button>
-            </th>
-        </tr>
+        <tr> <th> <p className='t1'> Most Popular Movies </p> </th> </tr>
         <tr className="post-list">
-                {posts.map(post => (
+                {posts.slice(indexOfFirstPost, indexOfLastPost).map((post, index) => (
                     <table key={post._id} className="post-item">
-                            <tr>
-                                <th className='avatar-cot'>
-                                    <img className="avatar" src={post.avatar} /> 
-                                    <p className="user-name">{post.userName}</p> 
-                                    {localStorage.getItem('userId') === post.userId ? (
-                                    <button className="edit-post-button" onClick={() => handleEditPost(post)}>⋮</button>
-                                    ) : null}
-                                </th>
-                            </tr>
-                            <tr> <th> <p className="post-title">{post.title}</p> </th> </tr>
                             <tr className="post-media">
                                 <th>
-                                {post.album.map((url, index) => (
-                                    <div key={index} className="media-item">
-                                        {isVideo(url) ? (
-                                            <video className="video-player" controls>
-                                                <source src={url} />
-                                            </video>
-                                        ) : (
-                                            <img className="image" src={url} alt={`Image ${index}`} />
-                                        )}
-                                    </div>
-                                ))}
+                                    <img className="image" onClick={() => handleImageClick(index)} src={post.image} alt='Error' />
                                 </th>
                             </tr>
+                            <tr> <th className='k1'> <p className="post-name">{post.name}</p> </th> </tr>
+                            <tr> 
+                                <th>
+                                    <div className='last'>
+                                        <p className="post-time">{post.time}</p>
+                                        <p className="post-year">{post.year}</p>
+                                    </div> 
+                                </th> 
+                            </tr>
+                            {selectedMovies[index] && (
+                                <div className="movie-detail-popup">
+                                    <div className='pop1'>
+                                        <img className="image2" src={post.image} alt='Error' />
+                                    </div>
+                                    <div className="pop2">
+                                        <div className='pop3'>
+                                            <label className='close-btn' onClick={() => setSelectedMovies(prevState => prevState.map((value, idx) => idx === index ? false : value))}>X</label>
+                                        </div>
+                                        <p className='n1'>{post.name}</p>
+                                        <div className='n2'>
+                                            <p className="n2-1">{post.time}</p>
+                                            <p className="n2-2">{post.year}</p>
+                                        </div> 
+                                        <p className='n3'>{post.introduce}</p>
+                                        <button className='n4'>PLAY MOVIE</button>
+                                    </div>
+                                </div>
+                            )}
                     </table>
                 ))}
+        </tr>
+        <tr>
+            <th>
+                {posts.length > postsPerPage && (
+                    <div className="pagination">
+                        <button  onClick={() => paginate(currentPage - 1)} disabled={currentPage === 1}>
+                            Prev
+                        </button>
+                        <button className='next' onClick={() => paginate(currentPage + 1)} disabled={indexOfLastPost >= posts.length}>
+                            Next
+                        </button>
+                    </div>
+                )}
+            </th>
         </tr>
         </table>
     );

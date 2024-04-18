@@ -4,7 +4,7 @@ import axios from 'axios';
 import './style.scss';
 
 function Register() {
-    const baseUrl = 'https://back2-1.onrender.com';
+    const baseUrl = '';
     const [userName, setUserName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
@@ -23,7 +23,7 @@ function Register() {
             else if(password.length<8)
                 setMessage('Password must be at least 8 letters');
             else{
-                await axios.post(baseUrl+'/users/add', { userName, email, password });
+                await axios.post(baseUrl+'/register', { userName, email, password });
                 setMessage('User created successfully');
                 navigate('/');
             }

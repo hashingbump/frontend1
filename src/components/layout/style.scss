@@ -1,8 +1,15 @@
 .navigation-buttons {
-    display: table;
     width: 100%;
+    height: 50px;
     tr {
+
+        display: flex;
+        flex-direction: row;
+        justify-content: center; // Các phần tử ở giữa trang web
+        align-items: center;
         th {
+            width: 100%;
+            height: 50px;
             padding: 0 10px;
         }
     }
@@ -10,39 +17,34 @@
 	border-radius: 5px; /* Tùy chỉnh bo góc cho container */
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.1); /* Hiệu ứng bóng đổ */
     background-color: white;
-}
 
-.btn {
-    padding: 10px 10px;
-    border: none;
-    cursor: pointer;
-    font-size: 16px;
-    border-radius: 10px;
-    color:black;
-    transition: background-color 0.3s, color 0.3s;
-    margin-bottom: 3px;
-}
 
-.btn:hover {
-    background-color: #8D949E;
-}
+    .btn-signout, .btn-signin {
+        padding: 10px 10px;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        border-radius: 10px;
+        color:black;
+        margin-bottom: 3px;
+    }
 
-.btn-home-layout {
-    background-color: #DADDE1;
-}
+    .btn-sigin:hover ,.btn-signout:hover {
+        background-color: #8D949E;
+    }
 
-.btn-account-layout {
-    background-color: #DADDE1;
-}
+    .btn-home-layout {
+        text-align: center;
+        margin-left: 45%;
+        color:cornflowerblue;
+        font-weight: bold;
+        font-family:'Gill Sans', 'Gill Sans MT', 'Calibri', 'Trebuchet MS', sans-serif;
+    }
 
-.btn-personal-layout {
-    background-color: #DADDE1;
-}
-
-.btn-signout {
-    background-color: #DADDE1;
-}
-
-.btn-signin {
-    background-color: #DADDE1;
+        .btn-signout,
+        .btn-signin {
+            margin-top: 5px;
+            margin-left: 40%;
+            background-color: #DADDE1;
+        }
 }
