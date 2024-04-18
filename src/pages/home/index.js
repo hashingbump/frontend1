@@ -5,7 +5,7 @@ import axios from 'axios';
 import './style.scss';
 
 function Home() {
-    const baseUrl = '';
+    const baseUrl = 'https://back1-fs9h.onrender.com';
     const navigate = useNavigate();
 
     const [selectedMovies, setSelectedMovies] = useState([]);

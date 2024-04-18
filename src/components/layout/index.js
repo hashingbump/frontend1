@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import './style.scss'
 
 function Layout() {
-    const baseUrl = '';
     const navigate = useNavigate();
     const handleLogout = async () => {
         try {
