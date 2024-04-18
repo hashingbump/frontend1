@@ -4,7 +4,7 @@ import axios from 'axios';
 import './style.scss';
 
 function Register() {
-    const baseUrl = 'https://back1-fs9h.onrender.com';
+    const baseUrl = '';
     const [userName, setUserName] = useState('');
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
